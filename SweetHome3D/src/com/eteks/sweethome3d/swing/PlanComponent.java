@@ -2020,13 +2020,22 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
   public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
     Level originalLevel = this.home.getSelectedLevel();
 
+    List<Level> viewableLevels = new ArrayList<>();
+    for (Level level : this.home.getLevels()) {
+      if (level.isViewable()) {
+        viewableLevels.add(level);
+      }
+    }
+
     try {
       if (this.home.getLevels().isEmpty()) {
         return printLevel(g, pageFormat, pageIndex);
       }
 
-      for (Level level : this.home.getLevels()) {
-        if (level.isViewable()) {
+      for (Level level : viewableLevels) {
+        for (Level otherLevel : viewableLevels) {
+          otherLevel.setViewable(otherLevel == level);
+        }
           this.home.setSelectedLevel(level);
           int pageCount = getLevelPageCount(g, pageFormat);
 
@@ -2036,10 +2045,13 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
 
           pageIndex = pageIndex - pageCount;
         }
-      }
 
       return NO_SUCH_PAGE;
     } finally {
+      for (Level level : viewableLevels) {
+        level.setViewable(true);
+      }
+
       this.home.setSelectedLevel(originalLevel);
     }
   }
